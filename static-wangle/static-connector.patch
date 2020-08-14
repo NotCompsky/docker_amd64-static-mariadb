@@ -1,0 +1,91 @@
+diff --git a/libmariadb/CMakeLists.txt b/libmariadb/CMakeLists.txt
+index f406b37..5caac8e 100644
+--- a/libmariadb/CMakeLists.txt
++++ b/libmariadb/CMakeLists.txt
+@@ -365,16 +365,7 @@ ELSE()
+ ENDIF()
+ 
+ 
+-IF((NOT WIN32) AND (CMAKE_VERSION VERSION_GREATER 2.8.7))
+-  # CREATE OBJECT LIBRARY 
+-  ADD_LIBRARY(mariadb_obj OBJECT ${LIBMARIADB_SOURCES})
+-  IF(UNIX)
+-    SET_TARGET_PROPERTIES(mariadb_obj PROPERTIES COMPILE_FLAGS "${CMAKE_SHARED_LIBRARY_C_FLAGS}")
+-  ENDIF()
+-  SET (MARIADB_OBJECTS $<TARGET_OBJECTS:mariadb_obj>)
+-ELSE()
+   SET (MARIADB_OBJECTS ${LIBMARIADB_SOURCES})
+-ENDIF()
+ 
+ # Xcode doesn't support targets that have only object files,
+ # so let's add an empty file to keep Xcode happy
+@@ -394,36 +385,11 @@ ENDIF()
+ ADD_LIBRARY(mariadbclient STATIC  ${MARIADB_OBJECTS} ${EMPTY_FILE})
+ TARGET_LINK_LIBRARIES(mariadbclient ${SYSTEM_LIBS})
+ 
+-IF(UNIX)
+-  ADD_LIBRARY(libmariadb SHARED ${libmariadb_RC} ${MARIADB_OBJECTS} ${EMPTY_FILE})
+-  SET_TARGET_PROPERTIES(libmariadb PROPERTIES COMPILE_FLAGS "${CMAKE_SHARED_LIBRARY_C_FLAGS}")
+-ELSE()
+-  ADD_LIBRARY(libmariadb SHARED ${libmariadb_RC} mariadbclient.def)
+-  TARGET_LINK_LIBRARIES(libmariadb LINK_PRIVATE mariadbclient)
+-  SET_TARGET_PROPERTIES(libmariadb PROPERTIES LINKER_LANGUAGE C)
+-ENDIF()
+-
+-TARGET_LINK_LIBRARIES(libmariadb LINK_PRIVATE ${SYSTEM_LIBS})
+-
+-SIGN_TARGET(libmariadb)
+-
+ IF(CMAKE_SIZEOF_VOID_P EQUAL 8 AND MSVC)
+   SET_TARGET_PROPERTIES(mariadbclient PROPERTIES STATIC_LIBRARY_FLAGS "/machine:x64")
+ ENDIF()
+ 
+-IF(CMAKE_SYSTEM_NAME MATCHES "Linux" OR
+-   CMAKE_SYSTEM_NAME MATCHES "kFreeBSD" OR
+-   CMAKE_SYSTEM_NAME MATCHES "GNU")
+-  IF (NOT WITH_ASAN AND NOT WITH_TSAN AND NOT WITH_UBSAN AND NOT WITH_MSAN)
+-    TARGET_LINK_LIBRARIES (libmariadb LINK_PRIVATE "-Wl,--no-undefined")
+-  ENDIF()
+-  SET_TARGET_PROPERTIES(libmariadb PROPERTIES LINK_FLAGS "${CC_BINARY_DIR}/libmariadb/mariadbclient.def")
+-ENDIF()
+-
+ SET_TARGET_PROPERTIES(mariadbclient PROPERTIES IMPORTED_INTERFACE_LINK_LIBRARIES "${SYSTEM_LIBS}")
+-SET_TARGET_PROPERTIES(libmariadb PROPERTIES IMPORTED_INTERFACE_LINK_LIBRARIES "${SYSTEM_LIBS}")
+-
+-SET_TARGET_PROPERTIES(libmariadb PROPERTIES PREFIX "")
+ 
+ #
+ # Installation
+@@ -435,17 +401,10 @@ INCLUDE(${CC_SOURCE_DIR}/cmake/symlink.cmake)
+ # use mariadb client library we provide libmysql symlinks
+ 
+ IF(WITH_MYSQLCOMPAT)
+-  create_symlink(libmysqlclient${CMAKE_SHARED_LIBRARY_SUFFIX} libmariadb ${INSTALL_LIBDIR})
+-  create_symlink(libmysqlclient_r${CMAKE_SHARED_LIBRARY_SUFFIX} libmariadb ${INSTALL_LIBDIR})
+   create_symlink(libmysqlclient${CMAKE_STATIC_LIBRARY_SUFFIX} mariadbclient ${INSTALL_LIBDIR})
+   create_symlink(libmysqlclient_r${CMAKE_STATIC_LIBRARY_SUFFIX} mariadbclient ${INSTALL_LIBDIR})
+ ENDIF()
+ 
+-
+-SET_TARGET_PROPERTIES(libmariadb PROPERTIES VERSION
+- ${CPACK_PACKAGE_VERSION_MAJOR}
+- SOVERSION ${CPACK_PACKAGE_VERSION_MAJOR})
+-
+ IF(NOT WIN32)
+   SET_TARGET_PROPERTIES(mariadbclient PROPERTIES OUTPUT_NAME "${LIBMARIADB_STATIC_NAME}")
+ ENDIF()
+@@ -453,14 +412,3 @@ ENDIF()
+ INSTALL(TARGETS mariadbclient
+           COMPONENT Development
+           DESTINATION ${INSTALL_LIBDIR})
+-INSTALL(TARGETS libmariadb
+-          COMPONENT SharedLibraries
+-        DESTINATION ${INSTALL_LIBDIR})
+-
+-
+-IF(MSVC)
+-   # On Windows, install PDB
+-   INSTALL(FILES $<TARGET_PDB_FILE:libmariadb> DESTINATION "${INSTALL_LIBDIR}"
+-           CONFIGURATIONS Debug RelWithDebInfo
+-           COMPONENT Development)
+-ENDIF()
