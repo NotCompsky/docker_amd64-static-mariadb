@@ -1,8 +1,8 @@
 diff --git a/libmariadb/CMakeLists.txt b/libmariadb/CMakeLists.txt
-index f406b37..5caac8e 100644
+index 14e34ab..e34f67d 100644
 --- a/libmariadb/CMakeLists.txt
 +++ b/libmariadb/CMakeLists.txt
-@@ -365,16 +365,7 @@ ELSE()
+@@ -367,16 +367,7 @@ ELSE()
  ENDIF()
  
  
@@ -19,7 +19,7 @@ index f406b37..5caac8e 100644
  
  # Xcode doesn't support targets that have only object files,
  # so let's add an empty file to keep Xcode happy
-@@ -394,36 +385,11 @@ ENDIF()
+@@ -397,36 +388,11 @@ ENDIF()
  ADD_LIBRARY(mariadbclient STATIC  ${MARIADB_OBJECTS} ${EMPTY_FILE})
  TARGET_LINK_LIBRARIES(mariadbclient ${SYSTEM_LIBS})
  
@@ -56,17 +56,19 @@ index f406b37..5caac8e 100644
  
  #
  # Installation
-@@ -435,17 +401,10 @@ INCLUDE(${CC_SOURCE_DIR}/cmake/symlink.cmake)
+@@ -438,8 +404,6 @@ INCLUDE(${CC_SOURCE_DIR}/cmake/symlink.cmake)
  # use mariadb client library we provide libmysql symlinks
  
  IF(WITH_MYSQLCOMPAT)
 -  create_symlink(libmysqlclient${CMAKE_SHARED_LIBRARY_SUFFIX} libmariadb ${INSTALL_LIBDIR})
 -  create_symlink(libmysqlclient_r${CMAKE_SHARED_LIBRARY_SUFFIX} libmariadb ${INSTALL_LIBDIR})
-   create_symlink(libmysqlclient${CMAKE_STATIC_LIBRARY_SUFFIX} mariadbclient ${INSTALL_LIBDIR})
-   create_symlink(libmysqlclient_r${CMAKE_STATIC_LIBRARY_SUFFIX} mariadbclient ${INSTALL_LIBDIR})
+   IF(NOT CMAKE_SYSTEM_NAME MATCHES AIX)
+     create_symlink(libmysqlclient${CMAKE_STATIC_LIBRARY_SUFFIX} mariadbclient ${INSTALL_LIBDIR})
+     create_symlink(libmysqlclient_r${CMAKE_STATIC_LIBRARY_SUFFIX} mariadbclient ${INSTALL_LIBDIR})
+@@ -447,10 +411,6 @@ IF(WITH_MYSQLCOMPAT)
  ENDIF()
  
--
+ 
 -SET_TARGET_PROPERTIES(libmariadb PROPERTIES VERSION
 - ${CPACK_PACKAGE_VERSION_MAJOR}
 - SOVERSION ${CPACK_PACKAGE_VERSION_MAJOR})
@@ -74,18 +76,13 @@ index f406b37..5caac8e 100644
  IF(NOT WIN32)
    SET_TARGET_PROPERTIES(mariadbclient PROPERTIES OUTPUT_NAME "${LIBMARIADB_STATIC_NAME}")
  ENDIF()
-@@ -453,14 +412,3 @@ ENDIF()
+@@ -458,9 +418,6 @@ ENDIF()
  INSTALL(TARGETS mariadbclient
            COMPONENT Development
            DESTINATION ${INSTALL_LIBDIR})
 -INSTALL(TARGETS libmariadb
 -          COMPONENT SharedLibraries
 -        DESTINATION ${INSTALL_LIBDIR})
--
--
--IF(MSVC)
--   # On Windows, install PDB
--   INSTALL(FILES $<TARGET_PDB_FILE:libmariadb> DESTINATION "${INSTALL_LIBDIR}"
--           CONFIGURATIONS Debug RelWithDebInfo
--           COMPONENT Development)
--ENDIF()
+ 
+ 
+ IF(MSVC)
