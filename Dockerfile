@@ -1,4 +1,4 @@
-FROM notcompsky/static:latest AS intermediate
+FROM notcompsky/amd64-static:latest AS intermediate
 
 COPY static-connector.patch /static-connector.patch
 
