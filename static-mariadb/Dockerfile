@@ -51,7 +51,7 @@ RUN mkdir /git \
 	&& cmake -DBUILD_TESTING=OFF . \
 	&& make install \
 	\
-	&& cd /git/lz4/contrib/cmake_unofficial \
+	&& cd /git/lz4/build/cmake \
 	&& cmake -DBUILD_SHARED_LIBS=OFF -DBUILD_STATIC_LIBS=ON . \
 	&& make install \
 	\
